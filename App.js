@@ -1,112 +1,80 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- * @flow strict-local
- */
+import React, { useState } from 'react';
+import { Alert, View, ScrollView, Text, Image, Button, StyleSheet, TouchableOpacity } from 'react-native';
 
-import React from 'react';
-import type {Node} from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+const pokemonsIniciais = [
+  { id: 1, nome: "Bulbasauro"},
+  { id: 4, nome: "Charmander"},
+  { id: 8, nome: "Wartortle"},
+  { id: 9, nome: "Blastoise"},
+  { id: 12, nome: "Butterfree"},
+  { id: 18, nome: "Pidgeot"},
+  { id: 20, nome: "Raticate"},
+  { id: 15, nome: "Beedrill"},
+  { id: 3, nome: "Venusaur"},
+];
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+export default function App() {
+  const [ pokemonEscolhido, setPokemonEscolhido ] = useState(null);
 
-const Section = ({children, title}): Node => {
-  const isDarkMode = useColorScheme() === 'dark';
+  const getPokemonData = (idPokemon) => {
+    const endpoint = `https://pokeapi.co/api/v2/pokemon/${idPokemon}/`;
+
+    fetch(endpoint)
+      .then(resposta => resposta.json())
+        .then( json => {
+          const pokemon = {
+            nome: json.name,
+            img: json.sprites.other["official-artwork"].front_default,
+            peso: json.weight,
+          };
+
+          setPokemonEscolhido(pokemon);
+        })
+        .catch(() => {
+          Alert.alert('Erro', 'Não foi possível carregar os dados do Pokémon');
+        });
+  }
+
   return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
+    <View style={styles.container}>
+      <ScrollView>
+        <View style={styles.topo}>
+          <Text style={styles.topoTitulo}>ESCOLHA SEU POKÉMON</Text>
+        </View>
+
+        {pokemonEscolhido != null && (
+          <View style={styles.pokemonBox}>
+            <Text style={styles.pokemonNome}>{pokemonEscolhido.nome}</Text>
+            <Text style={styles.pokemonPeso}>Peso: {pokemonEscolhido.peso}</Text>
+
+            <Image resizeMode="stretch" source={{uri:pokemonEscolhido.img}} style={styles.pokemonImg} />
+          </View>
+        )}
+
+        {pokemonsIniciais.map( pokemon => (
+          <View style={styles.cardContainer}>
+            {/* <Text style={styles.cardTitle}>{pokemon.nome}</Text> */}
+            <TouchableOpacity style={styles.cardTitle} title={pokemon.nome} onPress={()=>getPokemonData(pokemon.id)}><View style={styles.cardTitle}><Text>{pokemon.nome}</Text></View></TouchableOpacity>
+          </View>
+        ))}
+      </ScrollView>
     </View>
   );
-};
-
-const App: () => Node = () => {
-  const isDarkMode = useColorScheme() === 'dark';
-
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-  };
-
-  return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.js</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
-};
+}
 
 const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-});
+  container: { flex: 1, backgroundColor: '#fff' },
 
-export default App;
+  topo: { height: 90, padding: 20, marginBottom: 18, backgroundColor: '#a769d1' },
+  topoTitulo: { fontSize: 22, marginBottom: 10, color: '#fff', textAlign: 'center'},
+  
+  button: { borderRadius: 30,},
+
+  cardContainer: { borderWidth: 1, borderColor: '#a769d1', borderRadius: 18, marginBottom: 10, marginHorizontal: 20, padding: 10 },
+  cardTitle: { fontSize: 22, flex: 1, alignItems: 'center', color: '#a769d1' },
+
+  pokemonBox: { alignItems: 'center', marginBottom: 45},
+  pokemonNome: { fontSize: 22 },
+  pokemonPeso: { fontSize: 18,  marginBottom: 45 },
+  pokemonImg:{ width: 150, height: 150,  marginBottom: 18}
+});
